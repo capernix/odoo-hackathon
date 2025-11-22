@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import DashboardLayout from '@/components/DashboardLayout'
 
 interface Product {
   id: string
@@ -106,7 +107,8 @@ export default function ReceiptsPage() {
   const selectedWarehouse = warehouses.find(w => w.id === formData.warehouse_id)
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <DashboardLayout>
+      <div className="max-w-5xl mx-auto">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Stock Receipts</h1>
         <p className="text-gray-600 mb-8">Record incoming stock to warehouse</p>
@@ -236,6 +238,6 @@ export default function ReceiptsPage() {
           </div>
         </div>
       )}
-    </div>
+    </DashboardLayout>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import DashboardLayout from '@/components/DashboardLayout'
 
 interface Warehouse {
   id: string
@@ -146,7 +147,7 @@ export default function WarehousesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-8">
+    <DashboardLayout>
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -300,6 +301,6 @@ export default function WarehousesPage() {
           </div>
         </div>
       )}
-    </div>
+    </DashboardLayout>
   )
 }

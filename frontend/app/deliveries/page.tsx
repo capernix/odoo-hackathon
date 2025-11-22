@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
+import DashboardLayout from '@/components/DashboardLayout'
 
 interface Product {
   id: string
