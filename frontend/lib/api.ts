@@ -9,8 +9,10 @@ import {
   StockMovement,
   ApiResponse 
 } from '@/types';
+import { supabase } from './supabaseClient';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8069';
+const SCANNER_API_BASE = process.env.NEXT_PUBLIC_SCANNER_API_URL || 'http://localhost:8000';
 
 // Generic fetch wrapper with error handling
 async function fetchAPI<T>(
@@ -147,4 +149,127 @@ export const movementAPI = {
     fetchAPI<StockMovement[]>(`/api/movements/warehouse/${warehouseId}`),
   undoLast: () => 
     fetchAPI<void>('/api/undo-last', { method: 'POST' }),
+};
+
+// Scanner API endpoints
+export const scannerAPI = {
+  // Start scanner
+  startScanner: async (cameraId: number = 0, width: number = 1280, height: number = 720) => {
+    const response = await fetch(`${SCANNER_API_BASE}/scanner/start`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        camera_id: cameraId,
+        resolution_width: width,
+        resolution_height: height,
+      }),
+    });
+    return response.json();
+  },
+
+  // Stop scanner
+  stopScanner: async (cameraId: number = 0) => {
+    const response = await fetch(`${SCANNER_API_BASE}/scanner/stop/${cameraId}`, {
+      method: 'POST',
+    });
+    return response.json();
+  },
+
+  // Process receipt scan (using Supabase change_stock)
+  scanReceipt: async (productBarcode: string, warehouseBarcode: string, quantity: number, userId?: string) => {
+    try {
+      const productData = JSON.parse(productBarcode);
+      const warehouseData = JSON.parse(warehouseBarcode);
+      
+      // Get product and warehouse IDs from Supabase
+      const { data: product } = await supabase
+        .from('products')
+        .select('id')
+        .eq('sku', productData.sku)
+        .single();
+        
+      const { data: warehouse } = await supabase
+        .from('warehouses')
+        .select('id')
+        .eq('name', warehouseData.name)
+        .single();
+
+      if (!product || !warehouse) {
+        return { success: false, message: 'Product or warehouse not found' };
+      }
+
+      // Call Supabase RPC to update stock
+      const response = await fetch('/api/change-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'receipt',
+          product_id: product.id,
+          warehouse_id: warehouse.id,
+          qty: quantity,
+          user_id: userId,
+          note: `Scanner receipt: ${productData.sku}`,
+        }),
+      });
+
+      return response.json();
+    } catch (error) {
+      return { success: false, message: 'Failed to process scan' };
+    }
+  },
+
+  // Process delivery scan (using Supabase change_stock)
+  scanDelivery: async (productBarcode: string, warehouseBarcode: string, quantity: number, userId?: string) => {
+    try {
+      const productData = JSON.parse(productBarcode);
+      const warehouseData = JSON.parse(warehouseBarcode);
+      
+      // Get product and warehouse IDs from Supabase
+      const { data: product } = await supabase
+        .from('products')
+        .select('id')
+        .eq('sku', productData.sku)
+        .single();
+        
+      const { data: warehouse } = await supabase
+        .from('warehouses')
+        .select('id')
+        .eq('name', warehouseData.name)
+        .single();
+
+      if (!product || !warehouse) {
+        return { success: false, message: 'Product or warehouse not found' };
+      }
+
+      // Call Supabase RPC to update stock (negative quantity for delivery)
+      const response = await fetch('/api/change-stock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'delivery',
+          product_id: product.id,
+          warehouse_id: warehouse.id,
+          qty: -quantity, // Negative for delivery
+          user_id: userId,
+          note: `Scanner delivery: ${productData.sku}`,
+        }),
+      });
+
+      return response.json();
+    } catch (error) {
+      return { success: false, message: 'Failed to process scan' };
+    }
+  },
+
+  // Lookup barcode
+  lookupBarcode: async (barcode: string) => {
+    const response = await fetch(`${SCANNER_API_BASE}/scan/lookup/${encodeURIComponent(barcode)}`);
+    return response.json();
+  },
+
+  // Get scan history
+  getScanHistory: async (limit: number = 50) => {
+    const response = await fetch(`${SCANNER_API_BASE}/scan/history?limit=${limit}`);
+    return response.json();
+  },
 };

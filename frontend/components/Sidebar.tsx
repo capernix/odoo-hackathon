@@ -12,7 +12,8 @@ import {
   LogOut,
   User,
   Menu,
-  X
+  X,
+  QrCode
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -28,6 +29,11 @@ const navigation: NavigationItem[] = [
     name: 'Dashboard',
     href: '/dashboard',
     icon: <LayoutDashboard className="w-5 h-5" />,
+  },
+  {
+    name: 'QR Scanner',
+    href: '/scanner',
+    icon: <QrCode className="w-5 h-5" />,
   },
   {
     name: 'Stock Overview',
