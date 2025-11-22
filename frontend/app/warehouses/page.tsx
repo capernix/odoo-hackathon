@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import DashboardLayout from '@/components/DashboardLayout'
+import { Warehouse as WarehouseIcon, MapPin } from 'lucide-react'
 
 interface Warehouse {
   id: string
@@ -189,7 +190,7 @@ export default function WarehousesPage() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                            <span className="text-blue-600 text-lg">🏭</span>
+                            <WarehouseIcon className="h-5 w-5 text-blue-600" />
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
@@ -200,7 +201,7 @@ export default function WarehousesPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         <div className="flex items-center">
-                          <span className="mr-2">📍</span>
+                          <MapPin className="h-4 w-4 mr-2 text-gray-400" />
                           {warehouse.location}
                         </div>
                       </td>
